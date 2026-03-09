@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+
+<head>
+    <meta name="google" content="notranslate">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route11 — Available Tank Trucks</title>
+    <meta name="description" content="Available tank trucks for transport across Europe. Route11 free tanker board.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a365d;
+            --primary-light: #2a4a7f;
+            --accent: #e53e3e;
+            --accent-green: #38a169;
+            --bg: #f7fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --text: #1a202c;
+            --text-dim: #718096;
+            --text-muted: #a0aec0;
+            --orange: #dd6b20;
+            --orange-bg: #fffaf0;
+            --blue: #3182ce;
+            --blue-bg: #ebf8ff;
+            --radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px 24px;
+        }
+
+        .header-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            color: #f6ad55;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .header-stats {
+            text-align: right;
+        }
+
+        .stat-big {
+            font-size: 36px;
+            font-weight: 700;
+            color: #f6ad55;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* Search bar */
+        .search-bar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+        }
+
+        .search-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-inner input,
+        .search-inner select {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 14px;
+            background: var(--bg);
+        }
+
+        .search-inner input {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .search-inner select {
+            min-width: 120px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+
+        /* Stats row */
+        .stats-row {
+            max-width: 1100px;
+            margin: 16px auto;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px;
+            text-align: center;
+        }
+
+        .stat-card .num {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--orange);
+        }
+
+        .stat-card .lbl {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* Content */
+        .content {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        /* Date header */
+        .date-header {
+            background: var(--primary);
+            color: white;
+            border-radius: var(--radius);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            margin-bottom: 4px;
+        }
+
+        .date-header .day {
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .date-header .count {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 3px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Country header */
+        .country-header {
+            padding: 8px 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: #edf2f7;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Tanker row */
+        .tanker-table {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .tanker-row {
+            display: grid;
+            grid-template-columns: 60px 1fr 1fr auto 140px;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+        }
+
+        .tanker-row:hover {
+            background: #f7fafc;
+        }
+
+        .tanker-row:last-child {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-red {
+            background: #fff5f5;
+            color: #e53e3e;
+        }
+
+        .badge-green {
+            background: #f0fff4;
+            color: #38a169;
+        }
+
+        .badge-blue {
+            background: #ebf8ff;
+            color: #3182ce;
+        }
+
+        .badge-orange {
+            background: #fffaf0;
+            color: #dd6b20;
+        }
+
+        .inquire-btn {
+            padding: 6px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .inquire-btn:hover {
+            background: var(--primary-light);
+        }
+
+        .code {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .city {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 12px;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* Modal */
+        .modal-bg {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-bg.open {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .tanker-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .header-inner {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-stats {
+                text-align: center;
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-inner">
+            <div>
+                <div class="logo">ROUTE<span>11</span></div>
+                <div class="subtitle">Available Tank Trucks — Europe</div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-big" id="totalCount">...</div>
+                <div class="stat-label">available tankers</div>
+                <div class="stat-label" id="lastUpdated"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+        <div class="search-inner">
+            <input type="text" id="searchCity" placeholder="🟢 City or postal code...">
+            <select id="filterAdr">
+                <option value="all">ADR: All</option>
+                <option value="adr">ADR only</option>
+                <option value="no">Non-ADR</option>
+            </select>
+            <select id="filterTk">
+                <option value="all">Tank: All</option>
+                <option value="MONO">MONO</option>
+                <option value="MULTI">MULTI</option>
+                <option value="MONO/MULTI">MONO/MULTI</option>
+            </select>
+            <button class="btn btn-primary" onclick="applyFilters()">Search</button>
+            <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="num" id="statTotal">-</div>
+            <div class="lbl">Tankers Found</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" id="statCountries">-</div>
+            <div class="lbl">Countries</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" id="statDates">-</div>
+            <div class="lbl">Dates</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" id="statAdr">-</div>
+            <div class="lbl">ADR</div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content" id="tankersList">
+        <div class="empty-state">
+            <div class="spinner"></div>
+            <p style="margin-top:12px">Loading available tankers...</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2026 Route11 · office@route11.eu · Available Tank Trucks Board
+    </div>
+
+    <!-- Inquiry Modal -->
+    <div class="modal-bg" id="inquiryModal">
+        <div class="modal">
+            <h3 style="font-size: 18px; margin-bottom: 16px;">📧 Inquire About This Tanker</h3>
+            <div id="inquiryDetails" style="margin-bottom: 16px;"></div>
+            <form id="inquiryForm">
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size:12px; color: #718096; display:block; margin-bottom:4px;">Your Name</label>
+                    <input type="text" id="inqName" required
+                        style="width:100%; padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-family:inherit;">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size:12px; color: #718096; display:block; margin-bottom:4px;">Your Email</label>
+                    <input type="email" id="inqEmail" required
+                        style="width:100%; padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-family:inherit;">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size:12px; color: #718096; display:block; margin-bottom:4px;">Message</label>
+                    <textarea id="inqMessage" rows="3"
+                        style="width:100%; padding:8px 12px; border:1px solid #e2e8f0; border-radius:6px; font-family:inherit; resize:vertical;"></textarea>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal()" style="flex:1">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1">📧 Send Inquiry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbw7o2xk4fFOa7_vqAQb9xHxNaYoq4q5TCefzZNTNYNb-_e9Dpstx7cdvwQKznh3jEzD/exec';
+        const API_SECRET = 'R11Dashboard2026!';
+
+        const FLAGS = {
+            'DE': '🇩🇪', 'PL': '🇵🇱', 'BE': '🇧🇪', 'NL': '🇳🇱', 'FR': '🇫🇷', 'AT': '🇦🇹', 'CZ': '🇨🇿',
+            'HU': '🇭🇺', 'IT': '🇮🇹', 'ES': '🇪🇸', 'SK': '🇸🇰', 'CH': '🇨🇭', 'DK': '🇩🇰', 'SE': '🇸🇪',
+            'UK': '🇬🇧', 'RO': '🇷🇴', 'HR': '🇭🇷', 'LT': '🇱🇹', 'LV': '🇱🇻', 'EE': '🇪🇪', 'SI': '🇸🇮',
+            'BG': '🇧🇬', 'PT': '🇵🇹', 'LU': '🇱🇺', 'RS': '🇷🇸', 'FI': '🇫🇮', 'NO': '🇳🇴', 'GR': '🇬🇷'
+        };
+        const NAMES = {
+            'DE': 'GERMANY', 'PL': 'POLAND', 'BE': 'BELGIUM', 'NL': 'NETHERLANDS', 'FR': 'FRANCE',
+            'AT': 'AUSTRIA', 'CZ': 'CZECH REPUBLIC', 'HU': 'HUNGARY', 'IT': 'ITALY', 'ES': 'SPAIN',
+            'SK': 'SLOVAKIA', 'CH': 'SWITZERLAND', 'DK': 'DENMARK', 'SE': 'SWEDEN', 'UK': 'UNITED KINGDOM',
+            'RO': 'ROMANIA', 'HR': 'CROATIA', 'LT': 'LITHUANIA', 'LV': 'LATVIA', 'EE': 'ESTONIA',
+            'SI': 'SLOVENIA', 'BG': 'BULGARIA', 'PT': 'PORTUGAL', 'LU': 'LUXEMBOURG', 'RS': 'SERBIA',
+            'FI': 'FINLAND', 'NO': 'NORWAY', 'GR': 'GREECE'
+        };
+        const DAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+
+        let allTankers = [];
+
+        function getFlag(code) { return FLAGS[(code || '').split('-')[0]] || '🏳️'; }
+        function getCountry(code) { return NAMES[(code || '').split('-')[0]] || (code || '').split('-')[0]; }
+        function getDayName(dt) {
+            const p = dt.split('.');
+            if (p.length !== 3) return '';
+            return DAYS[new Date(p[2], p[1] - 1, p[0]).getDay()];
+        }
+
+        async function loadTankers() {
+            try {
+                const url = `${API_URL}?action=getTankers&secret=${encodeURIComponent(API_SECRET)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success) {
+                    allTankers = data.tankers || [];
+                    document.getElementById('totalCount').textContent = allTankers.length;
+                    document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+                    applyFilters();
+                }
+            } catch (err) {
+                document.getElementById('tankersList').innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Error loading tankers</p></div>';
+            }
+        }
+
+        function applyFilters() {
+            const q = document.getElementById('searchCity').value.toLowerCase();
+            const adr = document.getElementById('filterAdr').value;
+            const tk = document.getElementById('filterTk').value;
+
+            let filtered = allTankers.filter(t => {
+                if (q && !(t.city || '').toLowerCase().includes(q) && !(t.code || '').toLowerCase().includes(q) && !(t.company || '').toLowerCase().includes(q)) return false;
+                if (adr === 'adr' && !t.adr) return false;
+                if (adr === 'no' && t.adr) return false;
+                if (tk !== 'all' && t.tk !== tk) return false;
+                return true;
+            });
+
+            // Stats
+            document.getElementById('statTotal').textContent = filtered.length;
+            document.getElementById('statCountries').textContent = [...new Set(filtered.map(t => (t.code || '').split('-')[0]).filter(Boolean))].length;
+            document.getElementById('statDates').textContent = [...new Set(filtered.map(t => t.dt).filter(Boolean))].length;
+            document.getElementById('statAdr').textContent = filtered.filter(t => t.adr).length;
+
+            renderTankers(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('searchCity').value = '';
+            document.getElementById('filterAdr').value = 'all';
+            document.getElementById('filterTk').value = 'all';
+            applyFilters();
+        }
+
+        function renderTankers(tankers) {
+            const container = document.getElementById('tankersList');
+
+            if (tankers.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">🚛</div><h3>No tankers available</h3><p style="margin-top:8px">Check back later for available tank trucks</p></div>';
+                return;
+            }
+
+            // Group by date then country
+            const grouped = {};
+            tankers.forEach(t => {
+                const dk = t.dt || 'Unknown';
+                const cc = (t.code || '').split('-')[0];
+                if (!grouped[dk]) grouped[dk] = {};
+                if (!grouped[dk][cc]) grouped[dk][cc] = [];
+                grouped[dk][cc].push(t);
+            });
+
+            const sortedDates = Object.keys(grouped).sort((a, b) => {
+                const pa = a.split('.'), pb = b.split('.');
+                const da = pa.length === 3 ? new Date(pa[2], pa[1] - 1, pa[0]) : new Date(0);
+                const db = pb.length === 3 ? new Date(pb[2], pb[1] - 1, pb[0]) : new Date(0);
+                return da - db;
+            });
+
+            let html = '';
+            sortedDates.forEach(dk => {
+                const countries = grouped[dk];
+                const count = Object.values(countries).reduce((s, a) => s + a.length, 0);
+                const day = getDayName(dk);
+
+                html += `<div class="date-header"><span class="day">📅 ${day} ${dk}</span><span class="count">${count} tankers</span></div>`;
+                html += '<div class="tanker-table">';
+
+                Object.keys(countries).sort().forEach(cc => {
+                    html += `<div class="country-header">Available in ${getFlag(cc + '-')} ${getCountry(cc + '-') || 'OTHER'}</div>`;
+
+                    countries[cc].forEach(t => {
+                        const adrBadge = t.adr ? '<span class="badge badge-red">ADR</span>' : '<span class="badge badge-green">NO ADR</span>';
+                        const tkBadge = `<span class="badge badge-blue">${t.tk || 'MONO/MULTI'}</span>`;
+                        const note = t.nt && t.nt !== 'neutral' ? `<span style="font-size:11px; color:#718096; font-style:italic">${t.nt}</span>` : '';
+
+                        html += `
+              <div class="tanker-row">
+                <span style="font-family:'JetBrains Mono'; font-size:12px; color:#718096">${(t.dt || '').substring(0, 5)}</span>
+                <div>
+                  <div class="code">${t.code || ''}</div>
+                  <div class="city">${t.city || ''}</div>
+                </div>
+                <div>
+                  <div style="font-size:13px; font-weight:600">${t.company || '—'}</div>
+                  <div class="city">${t.contact || ''}</div>
+                </div>
+                <div style="display:flex; gap:4px; align-items:center; flex-wrap:nowrap">
+                  ${adrBadge} ${tkBadge} ${note}
+                </div>
+                <button class="inquire-btn" onclick="openInquiry(${t.id})">📧 Inquire</button>
+              </div>`;
+                    });
+                });
+
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function openInquiry(id) {
+            const t = allTankers.find(x => x.id === id);
+            if (!t) return;
+            document.getElementById('inquiryDetails').innerHTML = `
+        <div style="background:#f7fafc; padding:12px; border-radius:8px;">
+          <div style="font-weight:700">${getFlag(t.code)} ${t.city} (${t.code})</div>
+          <div style="font-size:13px; color:#718096; margin-top:4px">${t.dt} · ${t.adr ? 'ADR' : 'NO ADR'} · ${t.tk}</div>
+          ${t.company ? `<div style="font-size:13px; margin-top:4px">Company: <strong>${t.company}</strong></div>` : ''}
+        </div>`;
+            document.getElementById('inqMessage').value = `Hello,\n\nI am interested in your available tanker in ${t.city} (${t.dt}).\nIs it still available?\n\nBest regards`;
+            document.getElementById('inquiryModal').classList.add('open');
+            // Store tanker ID for form
+            document.getElementById('inquiryForm').dataset.tankerId = id;
+            document.getElementById('inquiryForm').dataset.contact = t.contact || 'office@route11.eu';
+        }
+
+        function closeModal() {
+            document.getElementById('inquiryModal').classList.remove('open');
+        }
+
+        document.getElementById('inquiryForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const contact = this.dataset.contact || 'office@route11.eu';
+            const name = document.getElementById('inqName').value;
+            const email = document.getElementById('inqEmail').value;
+            const message = document.getElementById('inqMessage').value;
+            const subject = encodeURIComponent('Route11 Tanker Inquiry from ' + name);
+            const body = encodeURIComponent(message + '\n\n---\nFrom: ' + name + ' (' + email + ')');
+            window.open(`mailto:${contact}?cc=office@route11.eu&subject=${subject}&body=${body}`, '_blank');
+            closeModal();
+        });
+
+        document.getElementById('searchCity').addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); });
+
+        // Load on page load
+        loadTankers();
+    </script>
+</body>
+
+</html>
