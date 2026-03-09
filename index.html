@@ -11,6 +11,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
             --primary: #1a365d;
@@ -395,6 +397,48 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* Map */
+        .map-toggle {
+            padding: 8px 20px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: white;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--primary);
+            transition: all 0.15s;
+        }
+
+        .map-toggle:hover {
+            background: var(--bg);
+        }
+
+        .map-toggle.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        #mapContainer {
+            display: none;
+            max-width: 1100px;
+            margin: 16px auto;
+            padding: 0 24px;
+        }
+
+        #mapContainer.visible {
+            display: block;
+        }
+
+        #mapEl {
+            height: 450px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
     </style>
 </head>
 
@@ -432,7 +476,13 @@
             </select>
             <button class="btn btn-primary" onclick="applyFilters()">Search</button>
             <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
+            <button class="map-toggle" id="mapToggleBtn" onclick="toggleMap()">🗺️ Show Map</button>
         </div>
+    </div>
+
+    <!-- Map -->
+    <div id="mapContainer">
+        <div id="mapEl"></div>
     </div>
 
     <!-- Stats -->
@@ -671,6 +721,95 @@
         });
 
         document.getElementById('searchCity').addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); });
+
+        // ========== MAP ==========
+        const CITY_COORDS = {
+            'Hamburg': { la: 53.55, lo: 9.99 }, 'Berlin': { la: 52.52, lo: 13.40 }, 'Munich': { la: 48.14, lo: 11.58 },
+            'Frankfurt': { la: 50.11, lo: 8.68 }, 'Cologne': { la: 50.94, lo: 6.96 }, 'Dusseldorf': { la: 51.23, lo: 6.78 },
+            'Stuttgart': { la: 48.78, lo: 9.18 }, 'Dortmund': { la: 51.51, lo: 7.47 }, 'Essen': { la: 51.46, lo: 7.01 },
+            'Bremen': { la: 53.08, lo: 8.80 }, 'Hannover': { la: 52.37, lo: 9.74 }, 'Duisburg': { la: 51.43, lo: 6.76 },
+            'Nuremberg': { la: 49.45, lo: 11.08 }, 'Leipzig': { la: 51.34, lo: 12.37 }, 'Dresden': { la: 51.05, lo: 13.74 },
+            'Mannheim': { la: 49.49, lo: 8.47 }, 'Ludwigshafen': { la: 49.48, lo: 8.44 }, 'Leverkusen': { la: 51.03, lo: 6.99 },
+            'Warsaw': { la: 52.23, lo: 21.01 }, 'Warszawa': { la: 52.23, lo: 21.01 }, 'Krakow': { la: 50.06, lo: 19.95 },
+            'Wroclaw': { la: 51.11, lo: 17.04 }, 'Gdansk': { la: 54.35, lo: 18.65 }, 'Poznan': { la: 52.41, lo: 16.93 },
+            'Katowice': { la: 50.26, lo: 19.03 }, 'Lodz': { la: 51.77, lo: 19.46 }, 'Szczecin': { la: 53.43, lo: 14.55 },
+            'Lublin': { la: 51.25, lo: 22.57 }, 'Tarnow': { la: 50.01, lo: 20.99 }, 'Rzeszow': { la: 50.04, lo: 22.00 },
+            'Pulawy': { la: 51.42, lo: 21.97 }, 'Legnica': { la: 51.21, lo: 16.16 }, 'Trzebinia': { la: 50.16, lo: 19.47 },
+            'Czestochowa': { la: 50.81, lo: 19.12 }, 'Teplice': { la: 50.64, lo: 13.82 },
+            'Antwerpen': { la: 51.22, lo: 4.40 }, 'Antwerp': { la: 51.22, lo: 4.40 }, 'Brussels': { la: 50.85, lo: 4.35 },
+            'Rotterdam': { la: 51.92, lo: 4.48 }, 'Amsterdam': { la: 52.37, lo: 4.90 },
+            'Paris': { la: 48.86, lo: 2.35 }, 'Lyon': { la: 45.76, lo: 4.83 }, 'Marseille': { la: 43.30, lo: 5.37 },
+            'Vienna': { la: 48.21, lo: 16.37 }, 'Wien': { la: 48.21, lo: 16.37 }, 'Graz': { la: 47.07, lo: 15.44 },
+            'Prague': { la: 50.08, lo: 14.44 }, 'Praha': { la: 50.08, lo: 14.44 }, 'Plzen': { la: 49.74, lo: 13.38 },
+            'Budapest': { la: 47.50, lo: 19.04 }, 'Milano': { la: 45.46, lo: 9.19 }, 'Milan': { la: 45.46, lo: 9.19 },
+            'Rome': { la: 41.90, lo: 12.50 }, 'Genua': { la: 44.41, lo: 8.93 }, 'Genova': { la: 44.41, lo: 8.93 },
+            'Barcelona': { la: 41.39, lo: 2.17 }, 'Madrid': { la: 40.42, lo: -3.70 }, 'Bilbao': { la: 43.26, lo: -2.93 },
+            'Bratislava': { la: 48.15, lo: 17.11 }, 'Zagreb': { la: 45.81, lo: 15.98 },
+            'Bucharest': { la: 44.43, lo: 26.10 }, 'Sofia': { la: 42.70, lo: 23.32 },
+            'Vilnius': { la: 54.69, lo: 25.28 }, 'Riga': { la: 56.95, lo: 24.11 },
+            'Tallinn': { la: 59.44, lo: 24.75 }, 'Kohtla-Jarve': { la: 59.40, lo: 27.27 },
+            'Metz': { la: 49.12, lo: 6.18 }, 'Ruse': { la: 43.86, lo: 25.97 }, 'Akmene': { la: 56.26, lo: 22.75 },
+            'Konin': { la: 52.22, lo: 18.25 }, 'Grudziadz': { la: 53.48, lo: 18.75 }, 'Walcz': { la: 53.27, lo: 16.47 },
+            'Kedzierzyn Kozle': { la: 50.35, lo: 18.23 }, 'Pritzwalk': { la: 53.15, lo: 12.17 },
+            'Wola Baranowska': { la: 50.55, lo: 21.59 }
+        };
+
+        let mapInstance = null;
+        let mapVisible = false;
+
+        function toggleMap() {
+            mapVisible = !mapVisible;
+            const container = document.getElementById('mapContainer');
+            const btn = document.getElementById('mapToggleBtn');
+            if (mapVisible) {
+                container.classList.add('visible');
+                btn.classList.add('active');
+                btn.textContent = '🗺️ Hide Map';
+                initMap();
+            } else {
+                container.classList.remove('visible');
+                btn.classList.remove('active');
+                btn.textContent = '🗺️ Show Map';
+            }
+        }
+
+        function initMap() {
+            if (!mapInstance) {
+                mapInstance = L.map('mapEl').setView([50.5, 12], 5);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap',
+                    maxZoom: 18
+                }).addTo(mapInstance);
+            }
+            updateMapMarkers();
+        }
+
+        function updateMapMarkers() {
+            if (!mapInstance) return;
+            // Clear old markers
+            mapInstance.eachLayer(l => { if (l instanceof L.Marker) mapInstance.removeLayer(l); });
+
+            const bounds = [];
+            allTankers.forEach(t => {
+                const coords = CITY_COORDS[t.city];
+                if (!coords) return;
+                const marker = L.marker([coords.la, coords.lo]).addTo(mapInstance);
+                marker.bindPopup(`
+                    <div style="font-family:'DM Sans',sans-serif; min-width:180px">
+                        <div style="font-weight:700; font-size:14px">${getFlag(t.code)} ${t.city}</div>
+                        <div style="color:#718096; font-size:12px; margin:4px 0">${t.code} · ${t.dt}</div>
+                        <div style="font-size:12px">${t.adr ? '🔴 ADR' : '🟢 NO ADR'} · ${t.tk}</div>
+                        ${t.company ? `<div style="font-size:12px; margin-top:4px"><strong>${t.company}</strong></div>` : ''}
+                        ${t.nt && t.nt !== 'neutral' ? `<div style="font-size:11px; color:#718096; font-style:italic; margin-top:2px">${t.nt}</div>` : ''}
+                    </div>
+                `);
+                bounds.push([coords.la, coords.lo]);
+            });
+
+            if (bounds.length > 0) {
+                mapInstance.fitBounds(bounds, { padding: [30, 30], maxZoom: 8 });
+            }
+        }
 
         // Load on page load
         loadTankers();
