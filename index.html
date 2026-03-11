@@ -13,6 +13,9 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <style>
         :root {
             --primary: #1a365d;
@@ -274,6 +277,11 @@
             color: #e53e3e;
         }
 
+        .badge-orange {
+            background: #fed7aa;
+            color: #c2410c;
+        }
+
         .badge-green {
             background: #f0fff4;
             color: #38a169;
@@ -474,8 +482,7 @@
                 <option value="MULTI">MULTI</option>
                 <option value="MONO/MULTI">MONO/MULTI</option>
             </select>
-            <input type="date" id="dateFrom" placeholder="From" style="padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit">
-            <input type="date" id="dateTo" placeholder="To" style="padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit">
+            <input type="text" id="dateRange" placeholder="📅 Select dates..." readonly style="padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:#fff;cursor:pointer;min-width:180px">
             <button class="btn btn-primary" onclick="applyFilters()">Search</button>
             <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
             <button class="map-toggle" id="mapToggleBtn" onclick="toggleMap()">🗺️ Show Map</button>
@@ -607,18 +614,19 @@
                 return true;
             });
 
-            // Date range filter
-            const fromV = document.getElementById('dateFrom').value;
-            const toV = document.getElementById('dateTo').value;
-            if (fromV || toV) {
+            // Date range filter (Flatpickr)
+            if (window._fpDates && window._fpDates.length > 0) {
+                const from = window._fpDates[0];
+                from.setHours(0,0,0,0);
+                const to = window._fpDates.length > 1 ? window._fpDates[1] : from;
+                to.setHours(23,59,59,999);
                 filtered = filtered.filter(t => {
                     if (!t.dt) return true;
                     const parts = t.dt.split('.');
                     if (parts.length < 3) return true;
                     const td = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-                    if (fromV && td < new Date(fromV)) return false;
-                    if (toV) { const toDate = new Date(toV); toDate.setHours(23,59,59); if (td > toDate) return false; }
-                    return true;
+                    td.setHours(12,0,0,0); // noon to avoid timezone edge cases
+                    return td >= from && td <= to;
                 });
             }
 
@@ -635,8 +643,8 @@
             document.getElementById('searchCity').value = '';
             document.getElementById('filterAdr').value = 'all';
             document.getElementById('filterTk').value = 'all';
-            document.getElementById('dateFrom').value = '';
-            document.getElementById('dateTo').value = '';
+            if (window._fpInstance) window._fpInstance.clear();
+            window._fpDates = [];
             applyFilters();
         }
 
@@ -825,6 +833,23 @@
                 mapInstance.fitBounds(bounds, { padding: [30, 30], maxZoom: 8 });
             }
         }
+
+        // Init Flatpickr date range calendar
+        window._fpDates = [];
+        window._fpInstance = flatpickr('#dateRange', {
+            mode: 'range',
+            dateFormat: 'd.m.Y',
+            minDate: 'today',
+            locale: { firstDayOfWeek: 1 },
+            onChange: function(selectedDates) {
+                window._fpDates = selectedDates;
+                if (selectedDates.length === 2) applyFilters();
+            },
+            onClose: function(selectedDates) {
+                window._fpDates = selectedDates;
+                applyFilters();
+            }
+        });
 
         // Load on page load
         loadTankers();
