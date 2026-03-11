@@ -244,7 +244,7 @@
 
         .tanker-row {
             display: grid;
-            grid-template-columns: 60px 1fr 1fr auto 140px;
+            grid-template-columns: 60px 1fr auto 140px;
             gap: 12px;
             align-items: center;
             padding: 10px 20px;
@@ -670,10 +670,6 @@
                   <div class="code">${t.code || ''}</div>
                   <div class="city">${t.city || ''}</div>
                 </div>
-                <div>
-                  <div style="font-size:13px; font-weight:600">${t.company || '—'}</div>
-                  <div class="city">${t.contact || ''}</div>
-                </div>
                 <div style="display:flex; gap:4px; align-items:center; flex-wrap:nowrap">
                   ${adrBadge} ${tkBadge} ${note}
                 </div>
@@ -695,13 +691,12 @@
         <div style="background:#f7fafc; padding:12px; border-radius:8px;">
           <div style="font-weight:700">${getFlag(t.code)} ${t.city} (${t.code})</div>
           <div style="font-size:13px; color:#718096; margin-top:4px">${t.dt} · ${t.adr ? 'ADR' : 'NO ADR'} · ${t.tk}</div>
-          ${t.company ? `<div style="font-size:13px; margin-top:4px">Company: <strong>${t.company}</strong></div>` : ''}
         </div>`;
             document.getElementById('inqMessage').value = `Hello,\n\nI am interested in your available tanker in ${t.city} (${t.dt}).\nIs it still available?\n\nBest regards`;
             document.getElementById('inquiryModal').classList.add('open');
-            // Store tanker ID for form
+            // Store tanker ID for form — always goes to Route11 office
             document.getElementById('inquiryForm').dataset.tankerId = id;
-            document.getElementById('inquiryForm').dataset.contact = t.contact || 'office@route11.eu';
+            document.getElementById('inquiryForm').dataset.contact = 'office@route11.eu';
         }
 
         function closeModal() {
@@ -799,7 +794,6 @@
                         <div style="font-weight:700; font-size:14px">${getFlag(t.code)} ${t.city}</div>
                         <div style="color:#718096; font-size:12px; margin:4px 0">${t.code} · ${t.dt}</div>
                         <div style="font-size:12px">${t.adr ? '🔴 ADR' : '🟢 NO ADR'} · ${t.tk}</div>
-                        ${t.company ? `<div style="font-size:12px; margin-top:4px"><strong>${t.company}</strong></div>` : ''}
                         ${t.nt && t.nt !== 'neutral' ? `<div style="font-size:11px; color:#718096; font-style:italic; margin-top:2px">${t.nt}</div>` : ''}
                     </div>
                 `);
