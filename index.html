@@ -447,6 +447,33 @@
             border: 1px solid var(--border);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
+
+        /* Autocomplete */
+        .ac-wrapper { position: relative; flex: 1; min-width: 200px; }
+        .ac-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            z-index: 200;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        .ac-dropdown.show { display: block; }
+        .ac-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.1s;
+        }
+        .ac-item:hover { background: #f7fafc; }
+        .ac-item:last-child { border-bottom: none; }
     </style>
 </head>
 
@@ -470,7 +497,10 @@
     <!-- Search -->
     <div class="search-bar">
         <div class="search-inner">
-            <input type="text" id="searchCity" placeholder="🟢 City or postal code...">
+            <div class="ac-wrapper">
+                <input type="text" id="searchCity" placeholder="🟢 City or postal code..." autocomplete="off">
+                <div class="ac-dropdown" id="cityDrop"></div>
+            </div>
             <select id="filterAdr">
                 <option value="all">ADR: All</option>
                 <option value="adr">ADR only</option>
@@ -850,6 +880,67 @@
                 applyFilters();
             }
         });
+
+        // City autocomplete with Photon API
+        (function(){
+            const inp = document.getElementById('searchCity');
+            const drop = document.getElementById('cityDrop');
+            let timer = null;
+
+            inp.addEventListener('input', function() {
+                const v = inp.value.trim().toLowerCase();
+                drop.innerHTML = '';
+                if (v.length < 2) { drop.classList.remove('show'); return; }
+
+                // Match from existing tanker cities
+                const cities = [...new Set(allTankers.map(t => t.city).filter(Boolean))];
+                let local = cities.filter(c => c.toLowerCase().startsWith(v)).slice(0, 4);
+                if (local.length === 0) local = cities.filter(c => c.toLowerCase().includes(v)).slice(0, 4);
+                local.forEach(c => {
+                    const it = document.createElement('div');
+                    it.className = 'ac-item';
+                    it.innerHTML = c + ' <span style="color:#3182ce;font-size:10px">★ in tankers</span>';
+                    it.onclick = () => { inp.value = c; drop.classList.remove('show'); applyFilters(); };
+                    drop.appendChild(it);
+                });
+                if (drop.children.length > 0) drop.classList.add('show');
+
+                // Photon API search
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(async () => {
+                    if (inp.value.trim().length < 2) return;
+                    try {
+                        const resp = await fetch('https://photon.komoot.io/api/?q=' + encodeURIComponent(inp.value.trim()) + '&limit=5&lang=en');
+                        const data = await resp.json();
+                        if (!data.features || data.features.length === 0) return;
+                        const existing = new Set();
+                        drop.querySelectorAll('.ac-item').forEach(x => {
+                            existing.add(x.textContent.replace(/★ in tankers/, '').trim().toLowerCase());
+                        });
+                        let added = 0;
+                        data.features.forEach(f => {
+                            if (added >= 4) return;
+                            const name = f.properties.name;
+                            if (!name) return;
+                            if (existing.has(name.toLowerCase())) return;
+                            existing.add(name.toLowerCase());
+                            const region = [f.properties.state || '', f.properties.country || ''].filter(Boolean).join(', ');
+                            const it = document.createElement('div');
+                            it.className = 'ac-item';
+                            it.innerHTML = '<b>' + name + '</b>' + (region ? ' <small style="color:#888">' + region + '</small>' : '');
+                            it.onclick = () => { inp.value = name; drop.classList.remove('show'); applyFilters(); };
+                            drop.appendChild(it);
+                            added++;
+                        });
+                        if (drop.children.length > 0) drop.classList.add('show');
+                    } catch(e) { console.log('Photon error:', e); }
+                }, 400);
+            });
+
+            inp.addEventListener('keydown', e => { if (e.key === 'Enter') { drop.classList.remove('show'); applyFilters(); } });
+            inp.addEventListener('blur', () => { setTimeout(() => { drop.classList.remove('show'); }, 200); });
+            document.addEventListener('click', e => { if (!inp.contains(e.target) && !drop.contains(e.target)) drop.classList.remove('show'); });
+        })();
 
         // Load on page load
         loadTankers();
