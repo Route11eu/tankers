@@ -244,7 +244,7 @@
 
         .tanker-row {
             display: grid;
-            grid-template-columns: 60px 1fr auto 140px;
+            grid-template-columns: 60px 1fr auto auto 140px;
             gap: 12px;
             align-items: center;
             padding: 10px 20px;
@@ -663,6 +663,8 @@
                         const tkBadge = `<span class="badge badge-blue">${t.tk || 'MONO/MULTI'}</span>`;
                         const note = t.nt && t.nt !== 'neutral' ? `<span style="font-size:11px; color:#718096; font-style:italic">${t.nt}</span>` : '';
 
+                        const dirBadge = t.direction && t.direction !== 'ALL' ? `<span class="badge badge-orange">→ ${t.direction}</span>` : `<span class="badge" style="background:#f7fafc; color:#a0aec0">→ ALL</span>`;
+
                         html += `
               <div class="tanker-row">
                 <span style="font-family:'JetBrains Mono'; font-size:12px; color:#718096">${(t.dt || '').substring(0, 5)}</span>
@@ -671,7 +673,7 @@
                   <div class="city">${t.city || ''}</div>
                 </div>
                 <div style="display:flex; gap:4px; align-items:center; flex-wrap:nowrap">
-                  ${adrBadge} ${tkBadge} ${note}
+                  ${adrBadge} ${tkBadge} ${dirBadge} ${note}
                 </div>
                 <button class="inquire-btn" onclick="openInquiry(${t.id})">📧 Inquire</button>
               </div>`;
